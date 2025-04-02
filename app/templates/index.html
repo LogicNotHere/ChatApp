@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
+</head>
+<body>
+    <h1>Welcome to the Chat App!</h1>
+    <div id="chat">
+        <ul id="messages"></ul>
+        <input id="username" type="text" placeholder="Your username">
+        <input id="message" type="text" placeholder="Type a message">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        // Подключение к WebSocket
+        const socket = io();
+
+        // Обработка входящих сообщений
+        socket.on('receive_message', function(data) {
+            const messages = document.getElementById('messages');
+            const li = document.createElement('li');
+            li.textContent = `${data.username}: ${data.message}`;
+            messages.appendChild(li);
+        });
+
+        // Отправка сообщения
+        function sendMessage() {
+            const username = document.getElementById('username').value;
+            const message = document.getElementById('message').value;
+
+            if (username && message) {
+                socket.emit('send_message', { username, message });
+                document.getElementById('message').value = '';  // Очистка поля ввода
+            } else {
+                alert('Username and message are required!');
+            }
+        }
+    </script>
+</body>
+</html>

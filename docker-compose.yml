@@ -1,0 +1,59 @@
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    env_file:
+      - .env  # Загрузка переменных окружения из .env
+    depends_on:
+      - mongo
+      - redis
+
+  redis:
+    image: redis:7-alpine  # Используем alpine для экономии места
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: always
+    healthcheck:  # Добавляем healthcheck
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+
+  celery_worker:
+    build: .
+    command: celery -A app.tasks worker --loglevel=info
+    volumes:
+      - .:/app  # Важно для hot-reload кода
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy  # Ждем инициализации Redis
+      mongo:
+        condition: service_started
+
+  celery_beat:  # Отдельный сервис для периодических задач
+    build: .
+    command: celery -A app.tasks beat --loglevel=info
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - mongo
+
+
+  mongo:
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
+  redis_data:

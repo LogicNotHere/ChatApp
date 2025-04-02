@@ -1,0 +1,9 @@
+Flask==2.0.3
+Werkzeug==2.0.3
+pymongo==4.5.0
+python-dotenv==1.0.0
+Flask-SocketIO==5.3.6
+PyJWT==2.8.0
+passlib==1.7.4
+celery==5.3.6
+redis==4.6.0
