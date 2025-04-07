@@ -39,7 +39,7 @@
 
                 if (response.ok) {
                     // После успешного входа перенаправляем на защищенную страницу
-                    window.location.href = '/chat';
+                    window.location.href = '/create_chat';
                 } else {
                     const result = await response.json();
                     errorElement.textContent = result.error || "Login failed!";

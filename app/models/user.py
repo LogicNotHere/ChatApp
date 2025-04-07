@@ -16,8 +16,15 @@ class User:
         })
         #"last_online": self.last_online
 
-        # "email": self.email,
+        # "email": self.email,asd
+    @staticmethod
+    def verify_password(username, password):
+        user = User.find_by_username(username)
+        if user and pbkdf2_sha256.verify(password, user["password"]):
+            return user
+        return None
 
+# ------------------------Base-methods--------------------------------------
     @staticmethod
     def find_by_username(username):
         return db.users.find_one({"username": username})
@@ -26,13 +33,8 @@ class User:
     def find_all():
         return list(db.users.find())
 
-    @staticmethod
-    def verify_password(username, password):
-        user = User.find_by_username(username)
-        if user and pbkdf2_sha256.verify(password, user["password"]):
-            return user
-        return None
 
+# ------------------------JWT--------------------------------------
     @staticmethod
     def generate_jwt(username, secret_key, expires_in=3600):                     # фул хуйня зачем я это тут делаю?
         payload = {

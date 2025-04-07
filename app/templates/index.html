@@ -2,29 +2,48 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat App</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
+    <title>Чат</title>
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+    <script>
+        const room_id = "{{ room_id }}";
+        const token = "{{ token }}";
+    </script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #chat-container { max-width: 600px; margin: 0 auto; }
+        #messages { list-style-type: none; padding: 0; }
+        #messages li { padding: 5px 10px; border-bottom: 1px solid #ddd; }
+        input, button { padding: 8px; margin: 5px 0; width: 100%; box-sizing: border-box; }
+    </style>
 </head>
 <body>
-    <h1>Welcome to the Chat App!</h1>
-    <div id="chat">
+    <div id="chat-container">
+        <h2>Чат-комната: {{ room_id }} AND {{ token }}</h2>
+
+        <input type="text" id="username" placeholder="Ваше имя">
         <ul id="messages"></ul>
-        <input id="username" type="text" placeholder="Your username">
-        <input id="message" type="text" placeholder="Type a message">
-        <button onclick="sendMessage()">Send</button>
+
+        <input type="text" id="message" placeholder="Введите сообщение">
+        <button onclick="sendMessage()">Отправить</button>
     </div>
 
     <script>
-        // Подключение к WebSocket
         const socket = io();
 
-        // Обработка входящих сообщений
+        // Подключение к комнате
+        socket.emit('join', { room: room_id });
+
+        // Получение сообщений
         socket.on('receive_message', function(data) {
             const messages = document.getElementById('messages');
             const li = document.createElement('li');
             li.textContent = `${data.username}: ${data.message}`;
             messages.appendChild(li);
+        });
+
+        // Обработка ошибок
+        socket.on('error', function(data) {
+            alert(data.msg);
         });
 
         // Отправка сообщения
@@ -33,10 +52,14 @@
             const message = document.getElementById('message').value;
 
             if (username && message) {
-                socket.emit('send_message', { username, message });
-                document.getElementById('message').value = '';  // Очистка поля ввода
+                socket.emit('send_message', {
+                    username: username,
+                    message: message,
+                    room: room_id
+                });
+                document.getElementById('message').value = '';
             } else {
-                alert('Username and message are required!');
+                alert('Введите имя и сообщение!');
             }
         }
     </script>

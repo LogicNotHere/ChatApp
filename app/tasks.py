@@ -24,3 +24,7 @@ def sync_online_status():
             User.set_online(username, online=True)  # last_online больше N и если больше N то был давно
         else:
             User.set_online(username, online=False)  # is_online
+
+@celery.task
+def save_message_to_mongo():
+    pass

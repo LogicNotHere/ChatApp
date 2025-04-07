@@ -1,10 +1,12 @@
 from flask import jsonify, render_template, request, redirect, url_for, session, make_response
 from ..models.user import User
-from ..redis import update_online_status
-import os
+from ..redis import update_online_status,r
+import os, json
 
 from ..db import jwt  # вынести куда то
 from functools import wraps  # вынести куда то
+
+import uuid
 
 
 def token_required(f):  # вынести куда то decorator
@@ -32,18 +34,35 @@ def token_required(f):  # вынести куда то decorator
 def hai():
     return render_template('register.html')
 
+def get_messages(room_id):
+    redis_key = f"room:{room_id}"
+    messages = r.hgetall(redis_key)
+
+    # Преобразуем сообщения в формат списка
+    message_list = []
+    for msg_key, msg_data in messages.items():
+        message_list.append(json.loads(msg_data))
+
+    return jsonify(message_list)
+
+def create_chat():
+    room_id = str(uuid.uuid4())
+    return redirect(url_for('chat', room_id=room_id))
+
 
 # Новый маршрут для отображения index.html
 @token_required
-def chat():  # добавить переход с логина в апку а не сразу в чат
-    update_online_status("Sula61")  # взять имя с ДЖвт токена
-    return render_template('index.html')
+def chat(room_id):  # добавить переход с логина в апку а не сразу в чат
+    update_online_status("Sula61")  # взять имя с ДЖвт токена или Id или хранить имя пользователя в куки/хедере
+    token = request.cookies.get('access_token')
+    return render_template('index.html', room_id=room_id, token=token)
+    # return render_template('index.html', room_id=room_id)
 
 
 # ("/users")
 def get_all_users():
     users = User.find_all()
-    a = [i['is_online'] for i in users]
+    a = [[i['username'], i['is_online']] for i in users]
     return f'{a}'
 
 
