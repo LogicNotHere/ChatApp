@@ -15,10 +15,9 @@ def token_required(f):  # вынести куда то decorator
         token = request.cookies.get('access_token')
 
         if not token:
-            return redirect(url_for('login'))  # Редирект, если нет токена
+            return redirect(url_for('login'))
 
         try:
-            # Проверяем токен
             data = jwt.decode(token, os.getenv("SECRET_KEY"), algorithms=["HS256"])
             # Можно добавить данные в `request` (например, request.user = data)
         except jwt.ExpiredSignatureError:
@@ -33,12 +32,11 @@ def token_required(f):  # вынести куда то decorator
 
 def hai():
     return render_template('register.html')
-
+#func for check test
 def get_messages(room_id):
     redis_key = f"room:{room_id}"
     messages = r.hgetall(redis_key)
 
-    # Преобразуем сообщения в формат списка
     message_list = []
     for msg_key, msg_data in messages.items():
         message_list.append(json.loads(msg_data))

@@ -5,9 +5,9 @@ app = Flask(__name__)
 socketio = SocketIO(app)
 
 from app.routes.main import hai, get_register, register, get_login, get_all_users, chat, login, create_chat,get_messages
-from app.routes.socket import handle_message, handle_join  # Импорт обработчика WebSocket
+from app.routes.socket import handle_message, handle_join
 
-# Регистрация маршрутов
+# Registration of routes
 app.route("/")(hai)
 
 app.get("/register")(get_register)  # Заглушка для  get  метода
@@ -22,7 +22,7 @@ app.route('/create_chat')(create_chat)
 
 app.route('/test/<room_id>')(get_messages)
 
-# Регистрация обработчика WebSocket
+# Registering a WebSocket
 socketio.on_event('send_message', handle_message)
 socketio.on_event('join', handle_join)
 
