@@ -7,3 +7,4 @@ PyJWT==2.8.0
 passlib==1.7.4
 celery==5.3.6
 redis==4.6.0
+eventlet==0.33.3
