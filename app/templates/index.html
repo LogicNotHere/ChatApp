@@ -7,6 +7,16 @@
     <script>
         const room_id = "{{ room_id }}";
         const token = "{{ token }}";
+        let username = "{{ username }}";  // Переменная для хранения имени пользователя
+
+        // Извлечение имени пользователя из токена (например, если оно в поле 'username')
+        try {
+            const decoded = jwt.decode(token);  // Используйте библиотеку jwt, чтобы декодировать токен
+            username = decoded.username;  // Извлекаем имя пользователя из токена
+        } catch (error) {
+            console.error("Ошибка декодирования токена:", error);
+        }
+
     </script>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
@@ -20,7 +30,6 @@
     <div id="chat-container">
         <h2>Чат-комната: {{ room_id }} AND {{ token }}</h2>
 
-        <input type="text" id="username" placeholder="Ваше имя">
         <ul id="messages"></ul>
 
         <input type="text" id="message" placeholder="Введите сообщение">
@@ -48,7 +57,6 @@
 
         // Отправка сообщения
         function sendMessage() {
-            const username = document.getElementById('username').value;
             const message = document.getElementById('message').value;
 
             if (username && message) {
@@ -59,7 +67,7 @@
                 });
                 document.getElementById('message').value = '';
             } else {
-                alert('Введите имя и сообщение!');
+                alert('Ошибка: имя пользователя или сообщение отсутствует!');
             }
         }
     </script>

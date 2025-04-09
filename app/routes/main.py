@@ -1,15 +1,22 @@
+from email.message import Message
+
 from flask import jsonify, render_template, request, redirect, url_for, session, make_response
+from pyexpat.errors import messages
+
+from datetime import datetime, timezone, timedelta
+from ..models.room import Room
+
 from ..models.user import User
-from ..redis import update_online_status,r
+from ..redis import update_online_status, r
 import os, json
 
-from ..db import jwt  # вынести куда то
+from ..db import jwt, client  # вынести куда то
 from functools import wraps  # вынести куда то
 
 import uuid
 
 
-def token_required(f):  # вынести куда то decorator
+def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         token = request.cookies.get('access_token')
@@ -19,11 +26,11 @@ def token_required(f):  # вынести куда то decorator
 
         try:
             data = jwt.decode(token, os.getenv("SECRET_KEY"), algorithms=["HS256"])
-            # Можно добавить данные в `request` (например, request.user = data)
+            request.user = data  # Можно добавить любые данные, например, request.user['username']
         except jwt.ExpiredSignatureError:
-            return redirect(url_for('login'))  # Токен просрочен
+            return redirect(url_for('login'))
         except jwt.InvalidTokenError:
-            return redirect(url_for('login'))  # Токен невалиден
+            return redirect(url_for('login'))
 
         return f(*args, **kwargs)
 
@@ -32,16 +39,29 @@ def token_required(f):  # вынести куда то decorator
 
 def hai():
     return render_template('register.html')
-#func for check test
+
+
+# func for check test
 def get_messages(room_id):
-    redis_key = f"room:{room_id}"
-    messages = r.hgetall(redis_key)
+    # # Получаем все устаревшие сообщения
+    # message_data = []
+    # for key in r.scan_iter(match="room:*"):
+    #     messages = r.zrange(key, 0, -1)
+    #     if messages:
+    #         for message in messages:
+    #             message_data.append()
 
-    message_list = []
-    for msg_key, msg_data in messages.items():
-        message_list.append(json.loads(msg_data))
+    # room = Room.get_room_by_id(f"{room_id}")
+    # if room:
+    #     print("Комната не найдена")
+    # else:
+    #     print("Комната не найдена")
+    all = []
+    all_rooms = Room.get_all_rooms()
+    for r in all_rooms:
+        all.append(r)
+    return jsonify(all)
 
-    return jsonify(message_list)
 
 def create_chat():
     room_id = str(uuid.uuid4())
@@ -51,10 +71,10 @@ def create_chat():
 # Новый маршрут для отображения index.html
 @token_required
 def chat(room_id):  # добавить переход с логина в апку а не сразу в чат
-    update_online_status("Sula61")  # взять имя с ДЖвт токена или Id или хранить имя пользователя в куки/хедере
+    username = request.user['sub']
+    update_online_status(username)
     token = request.cookies.get('access_token')
-    return render_template('index.html', room_id=room_id, token=token)
-    # return render_template('index.html', room_id=room_id)
+    return render_template('index.html', room_id=room_id, token=token, username=username)
 
 
 # ("/users")
@@ -63,6 +83,10 @@ def get_all_users():
     a = [[i['username'], i['is_online']] for i in users]
     return f'{a}'
 
+def all_del():
+    client.drop_database('chat_app')
+    r.flushall() # Удаляю весь редис
+    return f'VSE snesli'
 
 # -------Login------
 def get_login():
